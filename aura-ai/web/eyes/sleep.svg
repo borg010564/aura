@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title desc">
+  <title>AURA Round Set 4 Sleep</title>
+  <desc>Sleep expression with closed relaxed curved eyes.</desc>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M 280,516 Q 352,550 424,516" stroke="#19F0FF" stroke-width="16" stroke-linecap="round" fill="none" filter="url(#glow)"/><path d="M 600,516 Q 672,550 744,516" stroke="#19F0FF" stroke-width="16" stroke-linecap="round" fill="none" filter="url(#glow)"/>
+</svg>

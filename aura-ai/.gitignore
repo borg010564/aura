@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.pem
+server/conversation_history.json
+server/user_memory.json

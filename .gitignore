@@ -1,0 +1,26 @@
+# This repo holds the Aura companion: the Python brain (aura-ai/) and the Android shell
+# (aura-android/). They live side by side because the Android build copies the web app from
+# ../aura-ai/web at build time, so the relative path between them has to survive a clone.
+
+# Unrelated projects that happen to share this working folder
+/saitek_throttle_joystick/
+/saitek_throttle_read/
+/controller_test.html
+/.claude/
+
+# Secrets and machine-specific paths. Also covered by the per-project ignore files;
+# repeated here so a stray copy at the root can't slip through either.
+.env
+*.pem
+local.properties
+
+# Anything the tooling generates
+__pycache__/
+*.pyc
+.gradle/
+.idea/
+.jdk/
+build/
+*.iml
+.DS_Store
+Thumbs.db

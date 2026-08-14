@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title desc">
+  <title>AURA Round Set 4 Idle</title>
+  <desc>Idle expression with expressive round cyan eyes.</desc>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g id="eye-352"><ellipse cx="352" cy="512" rx="78" ry="78.0" fill="#19F0FF" filter="url(#glow)"/><circle cx="352" cy="510" r="28" fill="#071014"/>
+    <circle cx="341.4" cy="499.4" r="5.0" fill="#E8FFFF" opacity="0.95"/>
+    <circle cx="347.5" cy="505.0" r="2.2" fill="#83FAFF" opacity="0.9"/>
+    </g><g id="eye-672"><ellipse cx="672" cy="512" rx="78" ry="78.0" fill="#19F0FF" filter="url(#glow)"/><circle cx="672" cy="510" r="28" fill="#071014"/>
+    <circle cx="661.4" cy="499.4" r="5.0" fill="#E8FFFF" opacity="0.95"/>
+    <circle cx="667.5" cy="505.0" r="2.2" fill="#83FAFF" opacity="0.9"/>
+    </g>
+</svg>

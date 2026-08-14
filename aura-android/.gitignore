@@ -1,0 +1,13 @@
+*.iml
+.gradle/
+.idea/
+.jdk/
+local.properties
+.DS_Store
+build/
+captures/
+# Generated at build time by the copyWebAssets task, straight from ../aura-ai/web.
+# Committing it would mean two copies of the web app in the repo, drifting apart.
+app/src/main/assets/web/
+.externalNativeBuild/
+.cxx/

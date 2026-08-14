@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title desc">
+  <title>AURA Round Set 4 Blink 03</title>
+  <desc>Blink animation frame 3, fully closed.</desc>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <line x1="293.0" y1="512" x2="411.0" y2="512" stroke="#19F0FF" stroke-width="18" stroke-linecap="round" filter="url(#glow)"/><line x1="613.0" y1="512" x2="731.0" y2="512" stroke="#19F0FF" stroke-width="18" stroke-linecap="round" filter="url(#glow)"/>
+</svg>

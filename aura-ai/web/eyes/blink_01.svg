@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title desc">
+  <title>AURA Round Set 4 Blink 01</title>
+  <desc>Blink animation frame 1, partially closed.</desc>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <g id="eye-352"><ellipse cx="352" cy="512" rx="78" ry="45.239999999999995" fill="#19F0FF" filter="url(#glow)"/><circle cx="352" cy="511" r="24" fill="#071014"/>
+    <circle cx="342.9" cy="501.9" r="4.3" fill="#E8FFFF" opacity="0.95"/>
+    <circle cx="348.2" cy="506.7" r="1.9" fill="#83FAFF" opacity="0.9"/>
+    </g><g id="eye-672"><ellipse cx="672" cy="512" rx="78" ry="45.239999999999995" fill="#19F0FF" filter="url(#glow)"/><circle cx="672" cy="511" r="24" fill="#071014"/>
+    <circle cx="662.9" cy="501.9" r="4.3" fill="#E8FFFF" opacity="0.95"/>
+    <circle cx="668.2" cy="506.7" r="1.9" fill="#83FAFF" opacity="0.9"/>
+    </g>
+</svg>

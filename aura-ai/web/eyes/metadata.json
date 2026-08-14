@@ -1,0 +1,89 @@
+{
+  "name": "AURA Round Set 4 SVG Asset Pack",
+  "version": "1.0",
+  "canvas": {
+    "width": 1024,
+    "height": 1024,
+    "viewBox": "0 0 1024 1024",
+    "background": "transparent"
+  },
+  "style": {
+    "description": "Expressive round robotic eyes with cyan glow on transparent background.",
+    "primaryColor": "#19F0FF",
+    "accentColor": "#83FAFF",
+    "shadowColor": "#071014"
+  },
+  "files": [
+    "idle.svg",
+    "listening.svg",
+    "thinking.svg",
+    "happy.svg",
+    "sleep.svg",
+    "blink_01.svg",
+    "blink_02.svg",
+    "blink_03.svg",
+    "look_left.svg",
+    "look_right.svg",
+    "look_up.svg",
+    "look_down.svg",
+    "talking_01.svg",
+    "talking_02.svg",
+    "idle_ring.svg"
+  ],
+  "suggestedAnimationSequences": {
+    "blink": [
+      "idle.svg",
+      "blink_01.svg",
+      "blink_02.svg",
+      "blink_03.svg",
+      "blink_02.svg",
+      "blink_01.svg",
+      "idle.svg"
+    ],
+    "lookLeft": [
+      "idle.svg",
+      "look_left.svg"
+    ],
+    "lookRight": [
+      "idle.svg",
+      "look_right.svg"
+    ],
+    "lookUp": [
+      "idle.svg",
+      "look_up.svg"
+    ],
+    "lookDown": [
+      "idle.svg",
+      "look_down.svg"
+    ],
+    "talking": [
+      "talking_01.svg",
+      "talking_02.svg"
+    ],
+    "happyPulse": [
+      "happy.svg",
+      "idle.svg",
+      "happy.svg"
+    ],
+    "sleepIn": [
+      "idle.svg",
+      "blink_01.svg",
+      "blink_02.svg",
+      "sleep.svg"
+    ]
+  },
+  "flutterNotes": {
+    "recommendedPackage": "flutter_svg",
+    "positioning": {
+      "leftEyeCenter": [
+        352,
+        512
+      ],
+      "rightEyeCenter": [
+        672,
+        512
+      ]
+    },
+    "tip": "Wrap each SVG in AnimatedSwitcher or tween between states; for more realism, alternate talking_01 and talking_02, and trigger blink every 3 to 7 seconds."
+  }
+}

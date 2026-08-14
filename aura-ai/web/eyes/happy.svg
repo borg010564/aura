@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" fill="none" role="img" aria-labelledby="title desc">
+  <title>AURA Round Set 4 Happy</title>
+  <desc>Happy smiling eyes as glowing curved arcs.</desc>
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <path d="M 284,502 Q 352,454 420,502" stroke="#19F0FF" stroke-width="20" stroke-linecap="round" fill="none" filter="url(#glow)"/><path d="M 604,502 Q 672,454 740,502" stroke="#19F0FF" stroke-width="20" stroke-linecap="round" fill="none" filter="url(#glow)"/>
+</svg>
