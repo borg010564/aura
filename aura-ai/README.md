@@ -253,6 +253,13 @@ Four things that bit during the port, all of which fail quietly rather than loud
   reported `buffer too small... has 0.00ms of audio`.
 - **Language drifts.** Working from audio rather than a transcript, a stretch of room noise
   got a fluent reply in Thai. The instructions now pin English.
+- **A session's voice is fixed once it has spoken.** `session.update` returns "Cannot update
+  a conversation's voice if assistant audio is present" — and since the *whole* update is
+  rejected, the new personality didn't take either, so switching persona changed nothing at
+  all. Changing voice means a new session, so `set_persona` reconnects and replays the last
+  few exchanges into the fresh one (as `input_text` for the user and `output_text` for the
+  assistant — swap those and the API rejects the item). Switching mid-chat keeps the thread:
+  told a favourite colour as Aura, then asked as Rex, it still answered "you said green".
 
 ### The old pipeline, for reference
 Measured at **avg 4.2s**, almost all of it OpenAI's, with the spread being API variance

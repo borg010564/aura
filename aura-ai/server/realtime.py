@@ -36,6 +36,10 @@ REALTIME_URL = f"wss://api.openai.com/v1/realtime?model={REALTIME_MODEL}"
 # plays, so audio deltas can be forwarded to the phone untouched.
 PCM_SAMPLE_RATE = 24000
 
+# How many exchanges to carry into a new session when the persona changes. Enough to keep
+# the thread of a conversation without replaying an entire evening of it.
+MAX_REPLAYED_TURNS = 8
+
 # Realtime offers a different voice set from the `tts-1` endpoint — nova, onyx and fable
 # aren't in it, and asking for one fails the whole session with no audio at all. Map each
 # persona onto the nearest Realtime voice so they still sound like themselves.
@@ -145,6 +149,13 @@ class RealtimeBrain:
         self._sleeping = False
         self._asked_at = None
         self._pending_tool = False
+        # Only needed to rebuild the conversation in a new session after a persona change;
+        # within one session the model keeps its own context.
+        self._history: list[tuple[str, str]] = []
+
+    def _remember(self, role: str, text: str) -> None:
+        self._history.append((role, text))
+        del self._history[: max(0, len(self._history) - MAX_REPLAYED_TURNS * 2)]
 
     # ---- lifecycle ----
 
@@ -176,6 +187,11 @@ class RealtimeBrain:
                     "audio": {
                         "input": {
                             "format": {"type": "audio/pcm", "rate": PCM_SAMPLE_RATE},
+                            # Transcribe what was said alongside answering it. The model
+                            # doesn't need this to reply, but we do: it's what gets logged
+                            # as "heard", and it's what lets a conversation be replayed
+                            # into a new session when the persona changes.
+                            "transcription": {"model": "gpt-4o-mini-transcribe"},
                             # The phone has already decided the utterance is over — it does
                             # its own endpointing before uploading. Leaving server-side VAD
                             # on made it wait out a second silence window for speech that
@@ -213,8 +229,39 @@ class RealtimeBrain:
         return self._persona.system_prompt + self.LANGUAGE_RULE + memory.facts_prompt_block()
 
     async def set_persona(self, persona) -> None:
+        """Switch voice and personality.
+
+        A session's voice is fixed the moment it has spoken — `session.update` comes back
+        with "Cannot update a conversation's voice if assistant audio is present", and
+        because the whole update is rejected the new personality doesn't take either. So
+        the only way to change voice is a new session, and the conversation is replayed
+        into it so switching persona mid-chat doesn't wipe what you were talking about.
+        """
         self._persona = persona
-        await self._configure()
+        history = list(self._history)
+        await self.close()
+        await self.connect()
+        for role, text in history:
+            await self._send(
+                {
+                    "type": "conversation.item.create",
+                    "item": {
+                        "type": "message",
+                        "role": role,
+                        # The two roles take different content types, and the API rejects
+                        # the item outright if they're swapped.
+                        "content": [
+                            {
+                                "type": "input_text" if role == "user" else "output_text",
+                                "text": text,
+                            }
+                        ],
+                    },
+                }
+            )
+        self._history = history
+        print(f"[aura] persona now {persona.id} (voice {realtime_voice(persona.tts_voice)}), "
+              f"{len(history)} turns carried over")
 
     # ---- talking to it ----
 
@@ -276,6 +323,12 @@ class RealtimeBrain:
             self._spoken += ev.get("delta", "")
             await self._emit({"type": "reply", "user_text": "", "reply_text": self._spoken.strip()})
 
+        elif kind == "conversation.item.input_audio_transcription.completed":
+            heard = (ev.get("transcript") or "").strip()
+            print(f"[aura] heard: {heard!r}")
+            if heard:
+                self._remember("user", heard)
+
         elif kind == "response.function_call_arguments.done":
             await self._run_tool(ev.get("name", ""), ev.get("arguments", "") or "{}", ev.get("call_id"))
 
@@ -285,6 +338,7 @@ class RealtimeBrain:
                 self._audio_open = False
             if self._spoken.strip():
                 print(f"[aura] reply: {self._spoken.strip()!r}")
+                self._remember("assistant", self._spoken.strip())
             if self._pending_tool:
                 # A tool ran, so a second response carrying the actual answer is on its way.
                 # Treating this one as the end of the turn sent the face back to idle and
