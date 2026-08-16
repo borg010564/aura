@@ -1,3 +1,4 @@
+import asyncio
 import json
 import os
 import socket
@@ -48,6 +49,22 @@ if not API_KEY and not MOCK_MODE:
 client = AsyncOpenAI(api_key=API_KEY) if API_KEY else None
 
 app = FastAPI()
+
+_background: set[asyncio.Task] = set()
+
+
+def _dispatch(coro, label: str) -> None:
+    """Run a coroutine alongside the message loop, keeping a reference so it isn't
+    garbage-collected mid-flight, and logging rather than swallowing any failure."""
+    task = asyncio.create_task(coro)
+    _background.add(task)
+    task.add_done_callback(_background.discard)
+
+    def _report(t: asyncio.Task) -> None:
+        if not t.cancelled() and t.exception():
+            print(f"[aura] {label} failed: {t.exception()}")
+
+    task.add_done_callback(_report)
 
 
 @app.websocket("/ws")
@@ -205,7 +222,12 @@ async def websocket_endpoint(websocket: WebSocket):
                     new_id = brain.set_persona(control.get("persona", ""))
                     print(f"[aura] persona switched to {new_id}")
                     if live is not None:
-                        await live.set_persona(PERSONAS[new_id])
+                        # Don't hold up the message loop: switching rebuilds the Realtime
+                        # session, and awaiting it here made three quick taps of the
+                        # persona button queue up into three sequential rebuilds, ~5s
+                        # before it settled. Dispatched instead, RealtimeBrain coalesces
+                        # them into one rebuild to whichever persona you stopped on.
+                        _dispatch(live.set_persona(PERSONAS[new_id]), "set_persona")
                     await websocket.send_json({"type": "persona_set", "persona": new_id})
                 elif control.get("type") == "clear_history":
                     brain.clear_history()

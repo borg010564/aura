@@ -253,6 +253,11 @@ Four things that bit during the port, all of which fail quietly rather than loud
   reported `buffer too small... has 0.00ms of audio`.
 - **Language drifts.** Working from audio rather than a transcript, a stretch of room noise
   got a fluent reply in Thai. The instructions now pin English.
+- **A dropped WebSocket used to be permanent.** There was no reconnect: the page stayed up
+  and the wake word kept firing, but recordings were discarded because the transport wasn't
+  ready — indistinguishable from Aura ignoring you. Restarting the server did it, and so did
+  the router giving the PC a new address. `connectSocket()` now retries with backoff and
+  retries immediately when the app is brought back to the foreground.
 - **A session's voice is fixed once it has spoken.** `session.update` returns "Cannot update
   a conversation's voice if assistant audio is present" — and since the *whole* update is
   rejected, the new personality didn't take either, so switching persona changed nothing at
@@ -260,6 +265,9 @@ Four things that bit during the port, all of which fail quietly rather than loud
   few exchanges into the fresh one (as `input_text` for the user and `output_text` for the
   assistant — swap those and the API rejects the item). Switching mid-chat keeps the thread:
   told a favourite colour as Aura, then asked as Rex, it still answered "you said green".
+  Because a switch is now a rebuild rather than an instant update, rapid taps of the
+  persona button are coalesced — three taps cost one extra rebuild, not three, and land
+  on whichever persona you stopped on.
 
 ### The old pipeline, for reference
 Measured at **avg 4.2s**, almost all of it OpenAI's, with the spread being API variance

@@ -152,6 +152,8 @@ class RealtimeBrain:
         # Only needed to rebuild the conversation in a new session after a persona change;
         # within one session the model keeps its own context.
         self._history: list[tuple[str, str]] = []
+        self._persona_lock = asyncio.Lock()
+        self._desired_persona = persona
 
     def _remember(self, role: str, text: str) -> None:
         self._history.append((role, text))
@@ -237,6 +239,18 @@ class RealtimeBrain:
         the only way to change voice is a new session, and the conversation is replayed
         into it so switching persona mid-chat doesn't wipe what you were talking about.
         """
+        # Switching is no longer instant — it's a teardown and rebuild — and the persona
+        # button cycles on each tap, so a few quick taps used to overlap and land on the
+        # wrong personality, sometimes skipping one entirely. Take the lock, and once it's
+        # ours check nothing newer has been asked for: three taps should cost one reconnect
+        # to the persona you stopped on, not three interleaved ones.
+        self._desired_persona = persona
+        async with self._persona_lock:
+            if self._desired_persona is not persona:
+                return  # superseded while queued
+            await self._reconnect_as(persona)
+
+    async def _reconnect_as(self, persona) -> None:
         self._persona = persona
         history = list(self._history)
         await self.close()

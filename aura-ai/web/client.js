@@ -17,17 +17,20 @@ const transport = useDirect
       sendAudio: (buf) => AuraDirect.sendAudio(buf),
       sendControl: (obj) => AuraDirect.sendControl(obj),
     }
-  : (function () {
-      const proto = location.protocol === "https:" ? "wss" : "ws";
-      ws = new WebSocket(`${proto}://${location.host}/ws`);
-      ws.binaryType = "arraybuffer";
-      return {
-        kind: "server",
-        isReady: () => ws.readyState === WebSocket.OPEN,
-        sendAudio: (buf) => ws.send(buf),
-        sendControl: (obj) => ws.send(JSON.stringify(obj)),
-      };
-    })();
+  : {
+      // The socket is created by connectSocket() below and replaced on every reconnect,
+      // so everything here reads `ws` at call time rather than capturing it.
+      kind: "server",
+      isReady: () => ws != null && ws.readyState === WebSocket.OPEN,
+      sendAudio: (buf) => ws.send(buf),
+      sendControl: (obj) => ws.send(JSON.stringify(obj)),
+    };
+
+// Reconnect backoff: quick first retry, easing off to one attempt every 10s.
+const RECONNECT_BASE_MS = 700;
+const RECONNECT_MAX_MS = 10000;
+let reconnectAttempt = 0;
+let reconnectTimer = null;
 console.log("[aura] transport:", transport.kind);
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1082,10 +1085,59 @@ if (transport.kind === "direct") {
     handleTransportEvent({ data: msg instanceof ArrayBuffer ? msg : JSON.stringify(msg) })
   );
 } else {
-  ws.onmessage = handleTransportEvent;
-  ws.onclose = () =>
-    setCaption("Disconnected from the brain — restart the server and reload.");
+  connectSocket();
 }
+
+/**
+ * Opens the WebSocket, and keeps reopening it.
+ *
+ * Without this a single dropped connection killed Aura for good: the page stayed up and
+ * the wake word kept firing, but every recording was thrown away because the transport
+ * wasn't ready, so it looked exactly like it had stopped listening. Restarting the server
+ * did it, and so did the router handing the PC a new address. Neither is rare enough to
+ * need a manual reload.
+ */
+function connectSocket() {
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws.binaryType = "arraybuffer";
+  ws.onmessage = handleTransportEvent;
+
+  ws.onopen = () => {
+    if (reconnectAttempt > 0) {
+      console.log("[aura] reconnected to the brain");
+      setCaption("");
+    }
+    reconnectAttempt = 0;
+  };
+
+  ws.onclose = () => {
+    // Back off gradually, but keep trying: the server usually comes back.
+    const delay = Math.min(RECONNECT_MAX_MS, RECONNECT_BASE_MS * 2 ** reconnectAttempt);
+    reconnectAttempt++;
+    setCaption(
+      reconnectAttempt > 2 ? "Can't reach the brain — still trying…" : ""
+    );
+    console.log("[aura] socket closed; retrying in " + delay + "ms");
+    clearTimeout(reconnectTimer);
+    reconnectTimer = setTimeout(connectSocket, delay);
+  };
+}
+
+// Coming back to the app is a good moment to retry immediately rather than sit out the
+// remaining backoff — the network has often changed while it was in the background.
+document.addEventListener("visibilitychange", () => {
+  if (
+    document.visibilityState === "visible" &&
+    transport.kind === "server" &&
+    ws &&
+    ws.readyState === WebSocket.CLOSED
+  ) {
+    clearTimeout(reconnectTimer);
+    reconnectAttempt = 0;
+    connectSocket();
+  }
+});
 
 if ("wakeLock" in navigator) {
   navigator.wakeLock.request("screen").catch(() => {});
