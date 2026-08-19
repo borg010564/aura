@@ -1,0 +1,40 @@
+# systemd unit for the Aura server on a VPS.
+#   sudo cp aura.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now aura
+
+[Unit]
+Description=Aura companion server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=aura
+Group=aura
+WorkingDirectory=/opt/aura/aura-ai/server
+
+# uvicorn directly rather than `python app.py`: the __main__ block binds 0.0.0.0 and starts
+# the UDP discovery responder, both of which exist so a phone can find a PC on the same WiFi.
+# On a VPS the phone arrives by hostname, so bind to localhost and let Caddy hold the public
+# port. Nothing reaches the app that hasn't come through TLS.
+ExecStart=/opt/aura/aura-ai/server/.venv/bin/uvicorn app:app --host 127.0.0.1 --port 8000
+
+Restart=always
+RestartSec=3
+
+# The OpenAI key and AURA_TOKEN live here, not in this unit — unit files are world-readable.
+EnvironmentFile=/opt/aura/aura-ai/server/.env
+
+# Realtime sessions are long-lived; don't let a slow shutdown get killed mid-conversation.
+TimeoutStopSec=20
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateDevices=true
+# memory.py writes user_memory.json next to itself, so that one directory has to stay
+# writable under ProtectSystem=strict.
+ReadWritePaths=/opt/aura/aura-ai/server
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,31 @@
+# Caddy in front of the Aura server. Gets and renews a Let's Encrypt certificate on its own,
+# which is what makes the microphone work: browsers only hand over mic and camera on a secure
+# origin, and that was the whole reason the LAN setup needed a hand-rolled self-signed cert.
+#
+#   sudo cp Caddyfile /etc/caddy/Caddyfile
+#   sudo systemctl reload caddy
+#
+# Replace the hostname if you use a different subdomain. It must already resolve to this
+# server's IP before Caddy starts, or the certificate request fails.
+
+aura.cactusdesign.au {
+	# WebSockets need no special handling in Caddy v2 — upgrades are proxied as they come.
+	reverse_proxy 127.0.0.1:8000
+
+	encode gzip
+
+	header {
+		# The page is the same origin as its brain, so nothing needs to embed it.
+		X-Frame-Options DENY
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+	}
+
+	# config.js carries the mode the page runs in and must never be cached between deploys.
+	@config path /config.js
+	header @config Cache-Control "no-store"
+
+	log {
+		output file /var/log/caddy/aura.log
+	}
+}
