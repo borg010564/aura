@@ -1,0 +1,12 @@
+* text=auto
+
+# Only ever read by Linux tooling, and both systemd and Caddy fail in confusing ways on a
+# stray carriage return. Pin these regardless of what core.autocrlf says on the machine
+# doing the checkout.
+aura-ai/deploy/* text eol=lf
+*.sh text eol=lf
+gradlew text eol=lf
+
+# Windows wants the opposite.
+*.bat text eol=crlf
+gradlew.bat text eol=crlf

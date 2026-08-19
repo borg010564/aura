@@ -6,3 +6,6 @@ venv/
 *.pem
 server/conversation_history.json
 server/user_memory.json
+
+# Built by build-static.py from web/ + web-static/ — regenerate rather than commit.
+dist-web/

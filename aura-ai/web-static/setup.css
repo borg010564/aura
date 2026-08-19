@@ -1,0 +1,103 @@
+/* The key-entry screen, shown only until a key is stored. Styled to match the face: black
+   ground, the same cyan glow the eyes use, and inputs big enough to hit on a phone lying on
+   its side. `user-select` is re-enabled here because style.css turns it off globally, which
+   would otherwise stop you pasting a key. */
+#aura-setup {
+  position: fixed;
+  inset: 0;
+  /* The wake-word trainer is also z-index 10; setup has to outrank it rather than rely on
+     being appended later. */
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6vmin;
+  background: #000;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow-y: auto;
+}
+
+.aura-setup-card {
+  width: 100%;
+  max-width: 460px;
+  text-align: center;
+  color: #fff;
+}
+
+.aura-setup-card h1 {
+  font-size: 7vmin;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: #7fe3ff;
+  text-shadow: 0 0 18px rgba(90, 200, 245, 0.55);
+  margin-bottom: 2.4vmin;
+}
+
+.aura-setup-card p {
+  font-size: 3.4vmin;
+  line-height: 1.5;
+  color: #b9c3c9;
+  margin-bottom: 3.4vmin;
+}
+
+#aura-key {
+  width: 100%;
+  padding: 3.4vmin;
+  margin-bottom: 2.4vmin;
+  font-size: 3.8vmin;
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  color: #fff;
+  background: #0d1114;
+  border: 1px solid #2b353b;
+  border-radius: 12px;
+  outline: none;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#aura-key:focus {
+  border-color: #5ac8f5;
+  box-shadow: 0 0 0 3px rgba(90, 200, 245, 0.16);
+}
+
+#aura-save {
+  width: 100%;
+  padding: 3.4vmin;
+  font-size: 3.8vmin;
+  font-weight: 600;
+  color: #04141b;
+  background: #5ac8f5;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+#aura-save:active {
+  background: #43b4e2;
+}
+
+.aura-setup-note {
+  margin: 3vmin 0 0;
+  font-size: 2.9vmin;
+  color: #71797f;
+}
+
+.aura-setup-link {
+  margin-top: 2vmin;
+  font-size: 2.9vmin;
+  color: #71797f;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.aura-setup-error:empty {
+  display: none;
+}
+
+.aura-setup-error {
+  margin: 2.6vmin 0 0;
+  font-size: 3vmin;
+  color: #ff8f8f;
+}
