@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import secrets
 import socket
 import sys
 from pathlib import Path
@@ -34,6 +35,11 @@ USE_REALTIME = os.getenv("AURA_REALTIME", "1").lower() not in ("0", "false", "no
 
 WEB_DIR = Path(__file__).resolve().parent.parent / "web"
 PORT = int(os.getenv("AURA_PORT", "8000"))
+
+# Gate for a server reachable from the internet. Every /ws connection opens a session billed
+# to our OpenAI key, so a public host needs one. Left unset the endpoint stays open, which is
+# what you want on a home LAN and emphatically not what you want on a public address.
+ACCESS_TOKEN = os.getenv("AURA_TOKEN") or None
 SSL_CERT = os.getenv("AURA_SSL_CERT") or None
 SSL_KEY = os.getenv("AURA_SSL_KEY") or None
 
@@ -69,6 +75,15 @@ def _dispatch(coro, label: str) -> None:
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
+    # Refused before accept(), so an unauthorised caller never reaches the OpenAI connection
+    # below and never costs anything. compare_digest keeps the check constant-time.
+    if ACCESS_TOKEN is not None:
+        offered = websocket.query_params.get("token", "")
+        if not secrets.compare_digest(offered, ACCESS_TOKEN):
+            print("[aura] refused a /ws connection with a bad or missing token")
+            await websocket.close(code=1008)  # policy violation
+            return
+
     await websocket.accept()
     brain = Brain(client)
 

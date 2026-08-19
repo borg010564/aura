@@ -9,6 +9,42 @@ const useDirect =
   window.AuraConfig && window.AuraConfig.mode === "direct" &&
   window.AuraDirect && window.AuraDirect.isReady();
 
+// Access token for a server that's exposed to the internet (AURA_TOKEN on the server side).
+// Seeded once from ?k=... in the URL and then kept in localStorage, so the phone can be
+// opened from a bookmark afterwards without the secret living in the address bar. A server
+// with no token set ignores the parameter, so this is harmless on a LAN.
+const WS_TOKEN_KEY = "aura_ws_token";
+
+(function captureToken() {
+  let params;
+  try {
+    params = new URLSearchParams(location.search);
+  } catch (_) {
+    return;
+  }
+  const k = params.get("k");
+  if (!k) return;
+  try {
+    localStorage.setItem(WS_TOKEN_KEY, k);
+  } catch (_) {
+    // Storage blocked: the token still works for this page load, just not the next one.
+    return;
+  }
+  // Drop it from the address bar so a screenshot or a shared link doesn't leak it, while
+  // leaving any other parameter (?setup=1) alone.
+  params.delete("k");
+  const rest = params.toString();
+  history.replaceState(null, "", location.pathname + (rest ? "?" + rest : ""));
+})();
+
+function wsTokenSuffix() {
+  let token = null;
+  try {
+    token = localStorage.getItem(WS_TOKEN_KEY);
+  } catch (_) {}
+  return token ? "?token=" + encodeURIComponent(token) : "";
+}
+
 let ws = null;
 const transport = useDirect
   ? {
@@ -1099,7 +1135,7 @@ if (transport.kind === "direct") {
  */
 function connectSocket() {
   const proto = location.protocol === "https:" ? "wss" : "ws";
-  ws = new WebSocket(`${proto}://${location.host}/ws`);
+  ws = new WebSocket(`${proto}://${location.host}/ws${wsTokenSuffix()}`);
   ws.binaryType = "arraybuffer";
   ws.onmessage = handleTransportEvent;
 
