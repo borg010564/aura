@@ -125,6 +125,35 @@ the phone loads the page over plain `http://<lan-ip>`, pick one of these:
   Restart the server and open `https://<lan-ip>:8000` on the phone — tap through the
   one-time "connection not private" warning (expected for a self-signed cert).
 
+## Running the server online (cloud VPS)
+The setup above assumes the server lives on a PC on your home LAN, found by UDP discovery.
+That breaks the moment you're not on that network — discovery is broadcast-based and doesn't
+cross the internet — and it means Aura goes offline whenever the PC does.
+
+Moving `server/` to an always-on cloud box fixes both, at the cost of the key living on a
+machine you don't physically control (mitigate by scoping/rotating the OpenAI key, and by
+not exposing anything but 443 — see below).
+
+**Plan:**
+- **Host:** a small Vultr VPS (Ubuntu), running `server/` as a `systemd` service so it
+  survives reboots and crashes without a login session open.
+- **TLS:** nginx in front of uvicorn, terminating HTTPS/WSS with a Let's Encrypt cert on a
+  subdomain (e.g. `aura.<domain>`) pointed at the VPS's IP. The app binds to `127.0.0.1:8000`
+  and only nginx is exposed on 80/443 — nothing talks to uvicorn directly from outside.
+  This replaces the self-signed-cert workaround above with a browser-trusted one, which
+  matters more here since it's reachable from anywhere, not just LAN.
+- **Reaching it from the phone:** UDP discovery only works on the same LAN as the server, so
+  a cloud server won't be auto-found. Long-press the app's screen to open the manual URL
+  prompt and enter `https://aura.<domain>` once — it's remembered after that
+  (`MainActivity.kt`'s `PREF_URL`, the same preference discovery would have filled in).
+- **Secrets:** `OPENAI_API_KEY` lives only in the VPS's `server/.env` (gitignored, as
+  before) — never committed, never in the Android app's prefs when using server mode. The
+  Vultr API key used to provision the box is a separate, revocable credential and isn't
+  used by the running app at all.
+
+Everything else — personas, memory, weather, wake word — behaves the same, since it's the
+same server code either way; only where it runs and how the phone reaches it changes.
+
 ## Using it
 1. On your phone (same WiFi as the PC), open the printed URL in Chrome.
 2. The **first time**, press and hold anywhere to grant microphone permission (wake-word
