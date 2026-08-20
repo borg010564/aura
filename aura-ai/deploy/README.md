@@ -16,10 +16,22 @@ destination is OpenAI in the US, so a US box and a local one land within a few m
 of each other. Avoid anywhere that makes the traffic cross an ocean twice — Singapore, from
 Australia, is the worst of both.
 
-## 1. DNS first
+## 1. A hostname first
 
-Caddy can't get a certificate for a name that doesn't resolve yet, so do this before
-installing anything.
+Caddy can't get a certificate for a name that doesn't resolve yet, and a failed attempt
+counts against Let's Encrypt's rate limit — so settle the hostname before installing
+anything.
+
+**The quick way, with no DNS at all:** sslip.io resolves `<ip>.sslip.io` to that IP for
+anyone who asks, so `149.28.167.17.sslip.io` already works this second. It's a real public
+hostname, so Let's Encrypt issues a real certificate for it and the phone's microphone works.
+Put that in the Caddyfile and skip the rest of this section.
+
+The only thing it costs is a hostname nobody would call memorable, and a dependence on a
+third-party DNS service staying up. Moving to your own subdomain later is one Caddyfile line
+plus the record below, then re-entering the URL on the phone once.
+
+**The tidy way, with your own subdomain:**
 
 `cactusdesign.au` is registered at OnlyDomains but its DNS is served by the web host —
 the zone delegates to `ns1/ns2/ns3.hostingww.com`. So the record goes in that host's

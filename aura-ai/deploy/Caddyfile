@@ -5,8 +5,17 @@
 #   sudo cp Caddyfile /etc/caddy/Caddyfile
 #   sudo systemctl reload caddy
 #
-# Replace the hostname if you use a different subdomain. It must already resolve to this
-# server's IP before Caddy starts, or the certificate request fails.
+# The hostname must already resolve to this server's IP before Caddy starts, or the
+# certificate request fails — and a failed request counts against Let's Encrypt's rate limit.
+#
+# To go live before any DNS record exists, use sslip.io instead: it resolves any hostname of
+# the form <ip>.sslip.io straight to that IP, with nothing to configure. Swap the line below
+# for your server's address and Caddy gets a genuine, browser-trusted certificate for it:
+#
+#     149.28.167.17.sslip.io {
+#
+# Moving to the real subdomain later is just this line plus the A record — no app changes,
+# though the phone will need the new URL entered once.
 
 aura.cactusdesign.au {
 	# WebSockets need no special handling in Caddy v2 — upgrades are proxied as they come.
