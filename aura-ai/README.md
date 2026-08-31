@@ -144,17 +144,27 @@ not exposing anything but 443 — see below).
   `sslip.io` hostname that encodes the server's IP (no DNS to manage); swapping in a real
   subdomain later is just a new DNS record plus one more `certbot --nginx -d` run, no app
   changes.
+- **Access control:** `AURA_TOKEN` is set in the VPS's `.env`, so `/ws` refuses any
+  connection without it (403, verified — see the "Gate /ws" commit). Each phone needs the
+  `https://<host>/?k=<token>` URL opened once; after that it's remembered and the plain URL
+  works.
 - **Reaching it from the phone:** UDP discovery only works on the same LAN as the server, so
-  a cloud server won't be auto-found. Long-press the app's screen to open the manual URL
-  prompt and enter the server's `https://` URL once — it's remembered after that
-  (`MainActivity.kt`'s `PREF_URL`, the same preference discovery would have filled in).
-- **Secrets:** `OPENAI_API_KEY` lives only in the VPS's `server/.env` (gitignored, as
-  before) — never committed, never in the Android app's prefs when using server mode. The
-  Vultr API key used to provision the box is a separate, revocable credential and isn't
-  used by the running app at all.
+  a cloud server won't be auto-found. Open the `?k=` URL above once — same
+  `MainActivity.kt`'s `PREF_URL` preference discovery would have filled in, just seeded by
+  hand instead.
+- **Secrets:** `OPENAI_API_KEY` and `AURA_TOKEN` live only in the VPS's `server/.env`
+  (gitignored, as before) — never committed, never in the Android app's prefs when using
+  server mode. The Vultr API key used to provision the box is a separate, revocable
+  credential and isn't used by the running app at all.
 
 Everything else — personas, memory, weather, wake word — behaves the same, since it's the
 same server code either way; only where it runs and how the phone reaches it changes.
+
+Note for whoever picks this up next: `aura-ai/deploy/` (Caddyfile + its own README) documents
+a parallel nginx-free approach — Caddy handling TLS instead of nginx+certbot — written up
+alongside this deployment but not what's actually running. The live box uses nginx+certbot as
+described above; treat `deploy/` as a documented alternative, not the source of truth for
+what's live, unless someone migrates the box to match it.
 
 ## Using it
 1. On your phone (same WiFi as the PC), open the printed URL in Chrome.
